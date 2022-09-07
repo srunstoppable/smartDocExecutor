@@ -7,6 +7,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.power.doc.builder.ApiDocBuilder;
 import com.power.doc.model.ApiConfig;
+import com.power.doc.model.ApiDataDictionary;
 import com.power.doc.model.SourceCodePath;
 import org.apache.commons.lang3.StringUtils;
 import org.beetl.ext.fn.TypeNameFunction;
@@ -53,7 +54,7 @@ public class SmartDocExecutor extends AnAction {
     public static void buildWithFilePath(String filePath, String projectPath) {
         ApiConfig config = buildApiConfig(filePath, projectPath);
         Thread.currentThread().setContextClassLoader(TypeNameFunction.class.getClassLoader());
-        ApiDocBuilder.buildApiDoc(config);
+        ApiBuilderRevert.buildApiDoc(config);
 
     }
 
@@ -112,6 +113,7 @@ public class SmartDocExecutor extends AnAction {
 
     /**
      * 构造目标文件源地址
+     *
      * @param filePath
      * @param projectPath
      * @return
@@ -128,7 +130,7 @@ public class SmartDocExecutor extends AnAction {
             ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
                     file.listFiles().length, file.listFiles().length, 10, TimeUnit.SECONDS,
                     new LinkedBlockingDeque<Runnable>());
-            List<Future<List<String>>> futureList= new ArrayList<>();
+            List<Future<List<String>>> futureList = new ArrayList<>();
             for (File child : file.listFiles()) {
                 if (child.getName().contains("application") && child.getName().endsWith(".yml")) {
                     futureList.add(poolExecutor.submit(new PopulateDocCallable(child)));
@@ -149,7 +151,7 @@ public class SmartDocExecutor extends AnAction {
                 sourceCodePaths.add(SourceCodePath.builder().setPath(projectPath + "/common-component"));
             } else {
                 for (String name : serverNames) {
-                    sourceCodePaths.add(SourceCodePath.builder().setPath(projectPath + "/" +name));
+                    sourceCodePaths.add(SourceCodePath.builder().setPath(projectPath + "/" + name));
                 }
 
             }
@@ -164,6 +166,7 @@ public class SmartDocExecutor extends AnAction {
  */
 class PopulateDocCallable implements Callable<List<String>> {
     File file;
+
     public PopulateDocCallable(File file) {
         this.file = file;
     }
