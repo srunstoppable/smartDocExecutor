@@ -5,14 +5,15 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.power.doc.builder.ApiDocBuilder;
 import com.power.doc.model.ApiConfig;
-import com.power.doc.model.ApiDataDictionary;
 import com.power.doc.model.SourceCodePath;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.beetl.ext.fn.TypeNameFunction;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,8 +44,12 @@ public class SmartDocExecutor extends AnAction {
         }
         // 生成
         buildWithFilePath(virtualFile.getPath(), e.getProject().getBasePath());
+        long now = System.currentTimeMillis();
         while (!doc.exists()) {
             doc = new File(e.getProject().getBasePath() + "/" + serverName + "/doc/" + name.replace(".java", "Api.md"));
+            if (System.currentTimeMillis() - now > 5000) {
+                return;
+            }
         }
         VirtualFile virtualFile1 = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(doc);
         FileEditorManager manager = FileEditorManager.getInstance(e.getProject());
